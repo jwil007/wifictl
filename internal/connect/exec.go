@@ -14,7 +14,16 @@ type ScanList struct {
 }
 
 func RunWpacliScan(iface string) error {
-	c := exec.Command("wpa_cli", "dev", iface, "scan")
+	c := exec.Command("wpa_cli", "-i", iface, "scan")
+	err := c.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RunWpacliScanResults(iface string) error {
+	c := exec.Command("wpa_cli", "-i", iface, "scan_results")
 	err := c.Run()
 	if err != nil {
 		return err
