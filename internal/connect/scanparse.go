@@ -23,16 +23,8 @@ type SSIDList struct {
 	Bands   []string
 }
 
-func BuildScanList(iface string) ([]ScanResult, error) {
-	err := RunWpacliScan(iface)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := RunWpacliScanResults(iface)
-	if err != nil {
-		return nil, err
-	}
+func BuildScanList(rawScan []byte) ([]ScanResult, error) {
+	r := string(rawScan)
 
 	linesRaw := strings.Split(string(r), "\n")
 	// Remove first line from array, since it's a header
@@ -66,10 +58,12 @@ func BuildScanList(iface string) ([]ScanResult, error) {
 		freq, err := strconv.Atoi(parts[1])
 		if err != nil {
 			log.Printf("Invalid freq %v", err)
+			return nil, err
 		}
 		rssi, err := strconv.Atoi(parts[2])
 		if err != nil {
 			log.Printf("Invalid RSSI %v", err)
+			return nil, err
 		}
 
 		scanList = append(scanList, ScanResult{
