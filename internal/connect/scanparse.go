@@ -2,8 +2,10 @@
 package connect
 
 import (
+	"fmt"
 	"log"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,11 +18,12 @@ type ScanResult struct {
 	SSID    string
 }
 
-type SSIDList struct {
-	SSID    string
-	RSSI    int
-	SecType []string
-	Bands   []string
+type SSIDEntry struct {
+	SSID       string
+	RSSI       int
+	BSSIDCount int
+	SecType    []string
+	Bands      []string
 }
 
 func BuildScanList(rawScan []byte) ([]ScanResult, error) {
@@ -29,7 +32,6 @@ func BuildScanList(rawScan []byte) ([]ScanResult, error) {
 	linesRaw := strings.Split(string(r), "\n")
 	// Remove first line from array, since it's a header
 	lines := slices.Delete(linesRaw, 0, 1)
-
 	var scanList []ScanResult
 
 	for _, line := range lines {
@@ -84,4 +86,96 @@ func GroupBySSID(scanList []ScanResult) map[string][]ScanResult {
 		groupedBySSID[scan.SSID] = append(groupedBySSID[scan.SSID], scan)
 	}
 	return groupedBySSID
+}
+
+func BuildSSIDList(groupedBySSID map[string][]ScanResult) ([]SSIDEntry, error) {
+	var ssidList []SSIDEntry
+	for ssid, items := range groupedBySSID {
+		// create slices for each attribute
+		var rssiList []int
+		var bssidList []string
+		var secList [][]string
+		var freqList []int
+
+		for _, item := range items {
+			rssiList = append(rssiList, item.RSSI)
+			bssidList = append(bssidList, item.BSSID)
+			secList = append(secList, item.SecType)
+			freqList = append(freqList, item.Freq)
+		}
+		maxRssi, err := findMax(rssiList)
+		if err != nil {
+			return nil, err
+		}
+
+		bssidCount := len(bssidList)
+		secType := secList[0]
+
+		bands, err := processBands(freqList)
+		if err != nil {
+			return nil, err
+		}
+
+		ssidList = append(ssidList, SSIDEntry{
+			SSID:       ssid,
+			RSSI:       maxRssi,
+			BSSIDCount: bssidCount,
+			SecType:    secType,
+			Bands:      bands,
+		})
+
+	}
+	return ssidList, nil
+}
+
+func findMax(s []int) (int, error) {
+	if len(s) == 0 {
+		return 0, fmt.Errorf("cannot find max of empty slice")
+	}
+	maxVal := s[0]
+	for _, item := range s {
+		if item > maxVal {
+			maxVal = item
+		}
+	}
+	return maxVal, nil
+}
+
+func processBands(freqList []int) ([]string, error) {
+	var bandsRaw []string
+	var bands []string
+
+	for _, freq := range freqList {
+		switch {
+		case freq >= 2412 && freq <= 2484:
+			bandsRaw = append(bandsRaw, "2.4GHz")
+
+		case freq >= 5160 && freq <= 5885:
+			bandsRaw = append(bandsRaw, "5GHz")
+
+		case freq >= 5935 && freq <= 7115:
+			bandsRaw = append(bandsRaw, "6GHz")
+		default:
+			return nil, fmt.Errorf("invalid freq: %v", freq)
+		}
+	}
+
+	if slices.Contains(bandsRaw, "2.4GHz") {
+		bands = append(bands, "2.4GHz")
+	}
+	if slices.Contains(bandsRaw, "5GHz") {
+		bands = append(bands, "5GHz")
+	}
+	if slices.Contains(bandsRaw, "6GHz") {
+		bands = append(bands, "6GHz")
+	}
+
+	return bands, nil
+}
+
+func SortByRSSI(ssidList []SSIDEntry) []SSIDEntry {
+	sort.Slice(ssidList, func(i, j int) bool {
+		return ssidList[i].RSSI > ssidList[j].RSSI
+	})
+	return ssidList
 }

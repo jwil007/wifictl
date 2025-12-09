@@ -1,7 +1,9 @@
 // Package connect: SSID connection wizard
 package connect
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Connect orchestrates connection process
 func Connect(iface string) error {
@@ -22,12 +24,16 @@ func Connect(iface string) error {
 
 	groupedBySSID := GroupBySSID(scanList)
 
+	ssidList, err := BuildSSIDList(groupedBySSID)
+	if err != nil {
+		return err
+	}
+
+	// sort by RSSI - will prob remove later
+	ssidListSorted := SortByRSSI(ssidList)
 	// debug print, will remove
-	for ssid, items := range groupedBySSID {
-		fmt.Println("SSID:", ssid)
-		for _, it := range items {
-			fmt.Printf("  %+v\n", it)
-		}
+	for _, ssid := range ssidListSorted {
+		fmt.Printf(" %+v\n", ssid)
 	}
 
 	return nil
