@@ -5,14 +5,6 @@ import (
 	"os/exec"
 )
 
-type ScanList struct {
-	BSSID   string
-	SSID    string
-	RSSI    int
-	SecType string
-	Freq    int
-}
-
 func RunWpacliScan(iface string) error {
 	c := exec.Command("wpa_cli", "-i", iface, "scan")
 	err := c.Run()
@@ -22,11 +14,14 @@ func RunWpacliScan(iface string) error {
 	return nil
 }
 
-func RunWpacliScanResults(iface string) error {
-	c := exec.Command("wpa_cli", "-i", iface, "scan_results")
-	err := c.Run()
+func RunWpacliScanResults(iface string) ([]byte, error) {
+	out, err := exec.Command(
+		"wpa_cli",
+		"-i",
+		iface,
+		"scan_results").CombinedOutput()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return out, nil
 }
