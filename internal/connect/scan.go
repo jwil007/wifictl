@@ -2,7 +2,6 @@
 package connect
 
 import (
-	"fmt"
 	"log"
 	"slices"
 	"strconv"
@@ -17,19 +16,26 @@ type ScanResult struct {
 	SSID    string
 }
 
+type SSIDList struct {
+	SSID    string
+	RSSI    int
+	SecType []string
+	Bands   []string
+}
+
 func BuildScanList(iface string) ([]ScanResult, error) {
-	scanErr := RunWpacliScan(iface)
-	if scanErr != nil {
-		return nil, scanErr
+	err := RunWpacliScan(iface)
+	if err != nil {
+		return nil, err
 	}
 
-	r, scanRErr := RunWpacliScanResults(iface)
-	if scanRErr != nil {
-		return nil, scanRErr
+	r, err := RunWpacliScanResults(iface)
+	if err != nil {
+		return nil, err
 	}
 
 	linesRaw := strings.Split(string(r), "\n")
-
+	// Remove first line from array, since it's a header
 	lines := slices.Delete(linesRaw, 0, 1)
 
 	var scanList []ScanResult
@@ -50,7 +56,6 @@ func BuildScanList(iface string) ([]ScanResult, error) {
 		flagParts := strings.Split(flags, "][")
 		var secType []string
 		for _, part := range flagParts {
-			fmt.Println(part)
 			if strings.Contains(part, "WPA") {
 				s := strings.Replace(part, "[", "", 1)
 				secType = append(secType, s)
@@ -75,8 +80,14 @@ func BuildScanList(iface string) ([]ScanResult, error) {
 			SSID:    ssid,
 		})
 	}
-	for _, scan := range scanList {
-		fmt.Println(scan.BSSID, "\n", scan.Freq, "\n", scan.RSSI, "\n", scan.SecType, "\n", scan.SSID)
-	}
 	return scanList, nil
+}
+
+func GroupBySSID(scanList []ScanResult) map[string][]ScanResult {
+	groupedBySSID := make(map[string][]ScanResult)
+
+	for _, scan := range scanList {
+		groupedBySSID[scan.SSID] = append(groupedBySSID[scan.SSID], scan)
+	}
+	return groupedBySSID
 }
