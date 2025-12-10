@@ -1,10 +1,6 @@
 // Package connect: SSID connection wizard
 package connect
 
-import (
-	"fmt"
-)
-
 // Connect orchestrates connection process
 func Connect(iface string) error {
 	err := RunWpacliScan(iface)
@@ -31,10 +27,8 @@ func Connect(iface string) error {
 
 	// sort by RSSI - will prob remove later
 	ssidListSorted := SortByRSSI(ssidList)
-	// debug print, will remove
-	for _, ssid := range ssidListSorted {
-		fmt.Printf(" %+v\n", ssid)
-	}
+
+	Tui(ssidListSorted)
 
 	return nil
 }
