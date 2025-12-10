@@ -2,16 +2,48 @@
 package connect
 
 import (
+	"fmt"
 	"os/exec"
+	"strings"
 )
 
-func RunNmcliConnect(connection WiFiConnection) error {
+func RunNmcliConnAdd(connection WiFiConnection) (string, error) {
+	out, err := exec.Command(
+		"nmcli",
+		connection.BuildNmcliConnArgs()...).CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	outStr := string(out)
+	uuid, err := extractUUID(outStr)
+	if err != nil {
+		return "", err
+	}
+	return uuid, nil
+}
+
+func extractUUID(s string) (string, error) {
+	start := strings.LastIndex(s, "(")
+	end := strings.LastIndex(s, ")")
+
+	if start == -1 || end == -1 || end <= start {
+		return "", fmt.Errorf("could not extract UUID")
+	}
+
+	return s[start+1 : end], nil
+}
+
+func RunNmcliConnUp(uuid string) error {
 	c := exec.Command(
 		"nmcli",
-		connection.BuildNmcliConnArgs()...)
+		"connection",
+		"up",
+		"uuid",
+		uuid,
+	)
 	err := c.Run()
 	if err != nil {
-		return err
+		return fmt.Errorf("connection error to UUID %s", uuid)
 	}
 	return nil
 }
