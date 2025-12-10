@@ -5,6 +5,17 @@ import (
 	"os/exec"
 )
 
+func RunNmcliConnect(connection WiFiConnection) error {
+	c := exec.Command(
+		"nmcli",
+		connection.BuildNmcliConnArgs()...)
+	err := c.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func RunWpacliScan(iface string) error {
 	c := exec.Command("wpa_cli", "-i", iface, "scan")
 	err := c.Run()
