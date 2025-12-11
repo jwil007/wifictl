@@ -14,6 +14,10 @@ type tableModel struct {
 	table table.Model
 }
 
+type selectedRowMsg struct {
+	Row []string
+}
+
 func makeRows(ssidList []connect.SSIDEntry) []table.Row {
 	var rows []table.Row
 	for _, entry := range ssidList {
@@ -25,9 +29,14 @@ func makeRows(ssidList []connect.SSIDEntry) []table.Row {
 			strings.Join(entry.Bands, " "),
 		}
 		rows = append(rows, row)
-
 	}
 	return rows
+}
+
+func sendSelected(row []string) tea.Cmd {
+	return func() tea.Msg {
+		return selectedRowMsg{Row: row}
+	}
 }
 
 func (m tableModel) Init() tea.Cmd { return nil }
@@ -46,9 +55,8 @@ func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
-			)
+			return m, sendSelected(m.table.SelectedRow())
+
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
