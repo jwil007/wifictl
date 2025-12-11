@@ -26,6 +26,6 @@ func main() {
 	}
 	err1 := connect.RunNmcliConnUp(uuid)
 	if err1 != nil {
-		fmt.Printf("Error connecting: %s", err)
+		fmt.Printf("Error connecting: %s", err1)
 	}
 }

@@ -34,6 +34,9 @@ func extractUUID(s string) (string, error) {
 }
 
 func RunNmcliConnUp(uuid string) error {
+	if uuid == "" {
+		return fmt.Errorf("UUID is empty, cannot connect")
+	}
 	c := exec.Command(
 		"nmcli",
 		"connection",
