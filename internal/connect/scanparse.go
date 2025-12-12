@@ -24,6 +24,8 @@ type SSIDEntry struct {
 	BSSIDCount int
 	SecType    []string
 	Bands      []string
+	Saved      bool
+	Connected  bool
 }
 
 func BuildScanList(rawScan []byte) ([]ScanResult, error) {
@@ -171,6 +173,41 @@ func processBands(freqList []int) ([]string, error) {
 	}
 
 	return bands, nil
+}
+
+func CheckIfSSIDSaved(savedSSIDs []byte, ssidList []SSIDEntry) []SSIDEntry {
+	s := string(savedSSIDs)
+	savedSSIDList := strings.Split(s, "\n")
+
+	for i := range ssidList {
+		if slices.Contains(savedSSIDList, ssidList[i].SSID) {
+			ssidList[i].Saved = true
+		}
+	}
+	return ssidList
+}
+
+func GetConnectedSSID(wpacliStatus []byte) string {
+	s := string(wpacliStatus)
+	lines := strings.Split(s, "\n")
+	for _, line := range lines {
+		parts := strings.Split(line, "=")
+		if parts[0] == "ssid" {
+			connectedSSID := parts[1]
+			return connectedSSID
+		}
+	}
+	return ""
+}
+
+func CheckIfSSIDConn(connectedSSID string, ssidList []SSIDEntry) []SSIDEntry {
+	for i := range ssidList {
+		if ssidList[i].SSID == connectedSSID {
+			ssidList[i].Connected = true
+			return ssidList
+		}
+	}
+	return nil
 }
 
 func SortByRSSI(ssidList []SSIDEntry) []SSIDEntry {

@@ -8,24 +8,11 @@ import (
 
 const (
 	iface = "wlp0s20f3"
-	ssid  = "Get off my LAN"
 )
 
 func main() {
-	var conn connect.WiFiConnection
-	conn.Base.SSID = ssid
-	conn.Base.ConName = ssid
-	conn.Base.Iface = iface
-	conn.Security = connect.PSKSec{
-		Passphrase: "Fargo1234",
-		SAE:        false,
-	}
-	uuid, err := connect.RunNmcliConnAdd(conn)
+	err := connect.Connect(iface)
 	if err != nil {
-		fmt.Printf("Error adding ssid: %s", err)
-	}
-	err1 := connect.RunNmcliConnUp(uuid)
-	if err1 != nil {
-		fmt.Printf("Error connecting: %s", err1)
+		fmt.Printf("error: %+s", err)
 	}
 }

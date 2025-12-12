@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/jwil007/wifictl/internal/connect"
 )
 
 type Model struct {
 	Mode     AppMode
-	Table    table.Model
+	Table    tableModel
 	Form     FormModel
 	Selected connect.SSIDEntry
 }
@@ -24,12 +23,20 @@ const (
 	FormMode
 )
 
-func (m model) Init() tea.Cmd { return nil }
+func (m Model) Init() tea.Cmd { return nil }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
-func (m model) View() string {
+func (m Model) View() string {
+	switch m.Mode {
+	case TableMode:
+		return m.Table.View()
+	case FormMode:
+		return m.Form.View()
+	default:
+		return "You shouldn't see this"
+	}
 }
 
 func Tui() {

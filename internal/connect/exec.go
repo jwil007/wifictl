@@ -51,6 +51,19 @@ func RunNmcliConnUp(uuid string) error {
 	return nil
 }
 
+func RunNmcliConnShow() ([]byte, error) {
+	out, err := exec.Command("nmcli",
+		"-t",
+		"-f",
+		"	NAME",
+		"connection",
+		"show").CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("error listing connections")
+	}
+	return out, nil
+}
+
 func RunWpacliScan(iface string) error {
 	c := exec.Command("wpa_cli", "-i", iface, "scan")
 	err := c.Run()
@@ -68,6 +81,18 @@ func RunWpacliScanResults(iface string) ([]byte, error) {
 		"scan_results").CombinedOutput()
 	if err != nil {
 		return nil, err
+	}
+	return out, nil
+}
+
+func RunWpacliStatus(iface string) ([]byte, error) {
+	out, err := exec.Command(
+		"wpa_cli",
+		"-i",
+		iface,
+		"status").CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("error running wpa_cli status: %s", err)
 	}
 	return out, nil
 }
