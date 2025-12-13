@@ -27,6 +27,7 @@ func makeRows(ssidList []connect.SSIDEntry) []table.Row {
 			strconv.Itoa(entry.BSSIDCount),
 			strings.Join(entry.SecType, " "),
 			strings.Join(entry.Bands, " "),
+			strconv.FormatBool(entry.Saved),
 		}
 		rows = append(rows, row)
 	}
@@ -67,21 +68,20 @@ func (m tableModel) View() string {
 	return baseStyle.Render(m.table.View()) + "\n"
 }
 
-func NewTableModel(ssidList []connect.SSIDEntry) tableModel {
+func NewTableModel() tableModel {
 	columns := []table.Column{
 		{Title: "SSID", Width: 14},
 		{Title: "RSSI", Width: 4},
 		{Title: "AP Ct.", Width: 8},
 		{Title: "Security", Width: 20},
 		{Title: "Bands", Width: 20},
+		{Title: "Saved", Width: 8},
 	}
-	rows := makeRows(ssidList)
 
 	t := table.New(
 		table.WithColumns(columns),
-		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(14),
+		table.WithHeight(11),
 	)
 
 	s := table.DefaultStyles()

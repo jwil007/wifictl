@@ -14,31 +14,68 @@ type Model struct {
 	Table    tableModel
 	Form     FormModel
 	Selected connect.SSIDEntry
+	Iface    string
 }
 
 type AppMode int
 
 const (
-	TableMode AppMode = iota
+	LoadingMode AppMode = iota
+	TableMode
 	FormMode
 )
 
-func (m Model) InitialModel(ssidList []connect.SSIDEntry) Model {
-	m.Mode = TableMode
-	newTableModel(ssidList)
-	return m
+type ScanErrorMsg struct {
+	Err error
+}
+type ScanResultsMsg struct {
+	SSIDList []connect.SSIDEntry
 }
 
-func (m Model) Init() tea.Cmd { return nil }
+func InitialModel() Model {
+	return Model{
+		Mode: LoadingMode,
+		// hard coding iface for n
+		Iface: "wlp0s20f3",
+		Form:  nil,
+		Table: NewTableModel(),
+	}
+}
+
+func DoScanCmd(iface string) tea.Cmd {
+	return func() tea.Msg {
+		ssidList, err := connect.DoScan(iface)
+		if err != nil {
+			return ScanErrorMsg{Err: err}
+		}
+		return ScanResultsMsg{SSIDList: ssidList}
+	}
+}
+
+func (m Model) Init() tea.Cmd {
+	return DoScanCmd(m.Iface)
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case ScanResultsMsg:
+		rows := makeRows(msg.SSIDList)
+		m.Table.table.SetRows(rows)
+		m.Mode = TableMode
+		return m, nil
+	case selectedRowMsg:
+		m.Mode = FormMode
+		return m, nil
+
+	}
+
 	switch m.Mode {
 	case TableMode:
 		return m.Table.Update(msg)
 	case FormMode:
 		return m.Form.Update(msg)
 	default:
-		return nil, nil
+		return m, nil
 	}
 }
 
@@ -47,14 +84,14 @@ func (m Model) View() string {
 	case TableMode:
 		return m.Table.View()
 	case FormMode:
-		return m.Form.View()
+		return "you are in form mode"
 	default:
 		return "You shouldn't see this"
 	}
 }
 
 func Tui() {
-	var m Model
+	m := InitialModel()
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
