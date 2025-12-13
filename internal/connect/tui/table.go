@@ -67,7 +67,7 @@ func (m tableModel) View() string {
 	return baseStyle.Render(m.table.View()) + "\n"
 }
 
-func newTableModel(ssidList []connect.SSIDEntry) tableModel {
+func NewTableModel(ssidList []connect.SSIDEntry) tableModel {
 	columns := []table.Column{
 		{Title: "SSID", Width: 14},
 		{Title: "RSSI", Width: 4},
