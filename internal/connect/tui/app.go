@@ -23,9 +23,23 @@ const (
 	FormMode
 )
 
+func (m Model) InitialModel(ssidList []connect.SSIDEntry) Model {
+	m.Mode = TableMode
+	newTableModel(ssidList)
+	return m
+}
+
 func (m Model) Init() tea.Cmd { return nil }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch m.Mode {
+	case TableMode:
+		return m.Table.Update(msg)
+	case FormMode:
+		return m.Form.Update(msg)
+	default:
+		return nil, nil
+	}
 }
 
 func (m Model) View() string {
@@ -40,6 +54,7 @@ func (m Model) View() string {
 }
 
 func Tui() {
+	var m Model
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
