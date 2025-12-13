@@ -42,17 +42,11 @@ func sendSelected(row []string) tea.Cmd {
 
 func (m tableModel) Init() tea.Cmd { return nil }
 
-func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m tableModel) Update(msg tea.Msg) (tableModel, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
@@ -68,7 +62,7 @@ func (m tableModel) View() string {
 	return baseStyle.Render(m.table.View()) + "\n"
 }
 
-func NewTableModel() tableModel {
+func newTableModel() tableModel {
 	columns := []table.Column{
 		{Title: "SSID", Width: 14},
 		{Title: "RSSI", Width: 4},

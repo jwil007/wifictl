@@ -2,36 +2,89 @@ package connectui
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type FormModel interface {
-	Update(msg tea.Msg) (tea.Model, tea.Cmd)
+type formModel interface {
+	Update(msg tea.Msg) (formModel, tea.Cmd)
 	View() string
 }
 
 type openForm struct{}
 
-func (f openForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f openForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
 	return nil, nil
 }
 
 func (f openForm) View() string {
-	s := "Placeholder"
+	s := "PlaceholderOpen"
 	return s
 }
 
-type passphraseForm struct{}
+func newOpenForm() formModel {
+	return openForm{}
+}
 
-func (f passphraseForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+type oweForm struct{}
+
+func (f oweForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
 	return nil, nil
 }
 
-func (f passphraseForm) View() string {
-	s := "Placeholder"
+func (f oweForm) View() string {
+	s := "PlaceholderOWE"
 	return s
+}
+
+func newOWEForm() formModel {
+	return oweForm{}
+}
+
+type pskForm struct{}
+
+func (f pskForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
+	return nil, nil
+}
+
+func (f pskForm) View() string {
+	s := "PlaceholderPSK"
+	return s
+}
+
+func newPSKForm() formModel {
+	return pskForm{}
+}
+
+type saeForm struct{}
+
+func (f saeForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
+	return nil, nil
+}
+
+func (f saeForm) View() string {
+	s := "PlaceholdersAE"
+	return s
+}
+
+func newSAEForm() formModel {
+	return saeForm{}
+}
+
+type eapForm struct{}
+
+func (f eapForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
+	return nil, nil
+}
+
+func (f eapForm) View() string {
+	s := "PlaceholderEAP"
+	return s
+}
+
+func newEAPForm() formModel {
+	return eapForm{}
 }
 
 type peapForm struct{}
 
-func (f peapForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f peapForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
 	return nil, nil
 }
 
@@ -40,13 +93,21 @@ func (f peapForm) View() string {
 	return s
 }
 
+func newPEAPForm() formModel {
+	return peapForm{}
+}
+
 type eapTLSForm struct{}
 
-func (f eapTLSForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f eapTLSForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
 	return nil, nil
 }
 
 func (f eapTLSForm) View() string {
 	s := "Placeholder"
 	return s
+}
+
+func newEapTLSForm() formModel {
+	return eapTLSForm{}
 }
