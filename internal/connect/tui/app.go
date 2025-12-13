@@ -16,6 +16,7 @@ type Model struct {
 	Form     formModel
 	Selected connect.SSIDEntry
 	Iface    string
+	SSIDList []connect.SSIDEntry
 }
 
 type appMode int
@@ -32,6 +33,9 @@ type scanErrorMsg struct {
 type scanResultsMsg struct {
 	SSIDList []connect.SSIDEntry
 }
+type connectErrorMsg struct {
+	Err error
+}
 
 func initialModel() Model {
 	return Model{
@@ -43,17 +47,19 @@ func initialModel() Model {
 	}
 }
 
-func detectSecType(row []string) string {
+func detectSecType(index int, ssidList []connect.SSIDEntry) string {
+	sec := strings.Join(ssidList[index].SecType, "")
+
 	switch {
-	case row[3] == "":
+	case sec == "":
 		return "open"
-	case strings.Contains(row[3], "OWE"):
+	case strings.Contains(sec, "OWE"):
 		return "owe"
-	case strings.Contains(row[3], "PSK"):
+	case strings.Contains(sec, "PSK"):
 		return "psk"
-	case strings.Contains(row[3], "SAE"):
+	case strings.Contains(sec, "SAE"):
 		return "sae"
-	case strings.Contains(row[3], "EAP"):
+	case strings.Contains(sec, "EAP"):
 		return "eap"
 	default:
 		return "invalid sec type"
@@ -70,6 +76,19 @@ func doScanCmd(iface string) tea.Cmd {
 	}
 }
 
+func doConnectCmd(iface string,
+	ssidEntry connect.SSIDEntry,
+	sec connect.WiFiSecurity,
+) tea.Cmd {
+	return func() tea.Msg {
+		err := connect.DoConnect(iface, ssidEntry, sec)
+		if err != nil {
+			return connectErrorMsg{Err: err}
+		}
+		return nil
+	}
+}
+
 func (m Model) Init() tea.Cmd {
 	return doScanCmd(m.Iface)
 }
@@ -80,16 +99,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "r":
+			if m.Mode == tableMode {
+				m.Mode = loadingMode
+				return m, doScanCmd(m.Iface)
+			}
+		case "esc":
+			if m.Mode == formMode {
+				m.Mode = tableMode
+				return m, nil
+			}
 		}
 
 	case scanResultsMsg:
+		m.SSIDList = msg.SSIDList
 		rows := makeRows(msg.SSIDList)
 		m.Table.table.SetRows(rows)
 		m.Mode = tableMode
 		return m, nil
 
 	case selectedRowMsg:
-		switch detectSecType(msg.Row) {
+
+		switch detectSecType(msg.Cursor, m.SSIDList) {
 		case "open":
 			m.Form = newOpenForm()
 		case "owe":
@@ -100,6 +131,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Form = newSAEForm()
 		case "eap":
 			m.Form = newEAPForm()
+		default:
+			m.Form = newOpenForm()
 		}
 		m.Mode = formMode
 		return m, nil
@@ -111,7 +144,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Table = newTable
 		return m, cmd
 	case formMode:
-		return m, nil
+		newForm, cmd := m.Form.Update(msg)
+		m.Form = newForm
+		return m, cmd
 	default:
 		return m, nil
 	}
@@ -123,6 +158,8 @@ func (m Model) View() string {
 		return m.Table.View()
 	case formMode:
 		return m.Form.View()
+	case loadingMode:
+		return "loading..."
 	default:
 		return "You shouldn't see this"
 	}

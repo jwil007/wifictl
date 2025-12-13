@@ -15,7 +15,7 @@ type tableModel struct {
 }
 
 type selectedRowMsg struct {
-	Row []string
+	Cursor int
 }
 
 func makeRows(ssidList []connect.SSIDEntry) []table.Row {
@@ -34,9 +34,9 @@ func makeRows(ssidList []connect.SSIDEntry) []table.Row {
 	return rows
 }
 
-func sendSelected(row []string) tea.Cmd {
+func sendSelected(cursor int) tea.Cmd {
 	return func() tea.Msg {
-		return selectedRowMsg{Row: row}
+		return selectedRowMsg{Cursor: cursor}
 	}
 }
 
@@ -50,8 +50,7 @@ func (m tableModel) Update(msg tea.Msg) (tableModel, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			return m, sendSelected(m.table.SelectedRow())
-
+			return m, sendSelected(m.table.Cursor())
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
@@ -85,8 +84,8 @@ func newTableModel() tableModel {
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
+		Foreground(lipgloss.Color("250")).
+		Background(lipgloss.Color("32")).
 		Bold(false)
 	t.SetStyles(s)
 
