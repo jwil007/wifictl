@@ -10,7 +10,12 @@ import (
 type formModel interface {
 	Update(msg tea.Msg) (formModel, tea.Cmd)
 	View() string
-	Submit() interface{}
+}
+
+func sendMsg(msg tea.Msg) tea.Cmd {
+	return func() tea.Msg {
+		return msg
+	}
 }
 
 type openForm struct{}
@@ -56,6 +61,10 @@ type pskForm struct {
 	err       error
 }
 
+type pskSubmitMsg struct {
+	Passphrase string
+}
+
 func (f pskForm) Init() tea.Cmd {
 	return textinput.Blink
 }
@@ -67,8 +76,8 @@ func (f pskForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			f.Submit()
-			return f, nil
+			msg := f.Submit()
+			return f, sendMsg(msg)
 		}
 		f.textInput, cmd = f.textInput.Update(msg)
 		return f, cmd
@@ -83,8 +92,10 @@ func (f pskForm) View() string {
 	)
 }
 
-func (f pskForm) Submit() interface{} {
-	return f.textInput.Value()
+func (f pskForm) Submit() pskSubmitMsg {
+	return pskSubmitMsg{
+		Passphrase: f.textInput.Value(),
+	}
 }
 
 func newPSKForm() formModel {

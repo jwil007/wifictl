@@ -119,7 +119,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case selectedRowMsg:
-
+		m.Selected = m.SSIDList[msg.Cursor]
 		switch detectSecType(msg.Cursor, m.SSIDList) {
 		case "open":
 			m.Form = newOpenForm()
@@ -136,6 +136,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.Mode = formMode
 		return m, nil
+
+	case pskSubmitMsg:
+		var sec connect.PSKSec
+		sec.Passphrase = msg.Passphrase
+		sec.SAE = false
+		cmd := doConnectCmd(m.Iface, m.Selected, sec)
+		return m, cmd
 	}
 
 	switch m.Mode {
