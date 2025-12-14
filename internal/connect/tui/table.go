@@ -84,8 +84,8 @@ func newTableModel() tableModel {
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("250")).
-		Background(lipgloss.Color("32")).
+		Foreground(lipgloss.Color("15")).
+		Background(lipgloss.Color("69")).
 		Bold(false)
 	t.SetStyles(s)
 

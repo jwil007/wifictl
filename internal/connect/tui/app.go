@@ -17,6 +17,8 @@ type Model struct {
 	Selected connect.SSIDEntry
 	Iface    string
 	SSIDList []connect.SSIDEntry
+	Height   int
+	Width    int
 }
 
 type appMode int
@@ -95,6 +97,10 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.Height = msg.Height
+		m.Width = msg.Width
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
@@ -126,9 +132,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "owe":
 			m.Form = newOWEForm()
 		case "psk":
-			m.Form = newPSKForm()
+			m.Form = newPSKForm(m.Selected.SSID, false)
 		case "sae":
-			m.Form = newSAEForm()
+			m.Form = newPSKForm(m.Selected.SSID, true)
 		case "eap":
 			m.Form = newEAPForm()
 		default:
@@ -140,9 +146,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case pskSubmitMsg:
 		var sec connect.PSKSec
 		sec.Passphrase = msg.Passphrase
-		sec.SAE = false
+		sec.SAE = msg.SAE
 		cmd := doConnectCmd(m.Iface, m.Selected, sec)
 		return m, cmd
+
+	case connectErrorMsg:
+		fmt.Println("connect error", msg.Err)
 	}
 
 	switch m.Mode {

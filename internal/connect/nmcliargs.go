@@ -39,7 +39,7 @@ type PSKSec struct {
 func (p PSKSec) nmcliArgs() []string {
 	if p.SAE {
 		return []string{
-			"wifi-sec.key-mgmt", "wpa-psk", "sae",
+			"wifi-sec.key-mgmt", "sae",
 			"wifi-sec.psk", p.Passphrase,
 		}
 	}

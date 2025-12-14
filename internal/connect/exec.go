@@ -12,7 +12,7 @@ func RunNmcliConnAdd(connection WiFiConnection) (string, error) {
 		"nmcli",
 		connection.BuildNmcliConnArgs()...).CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("nmcli connection add failed: %w: %s", err, string(out))
 	}
 	outStr := string(out)
 	uuid, err := extractUUID(outStr)
