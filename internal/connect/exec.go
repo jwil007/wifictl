@@ -4,49 +4,50 @@ package connect
 import (
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
-func RunNmcliConnAdd(connection WiFiConnection) (string, error) {
-	out, err := exec.Command(
+func RunNmcliConnAdd(connection WiFiConnection) error {
+	c := exec.Command(
 		"nmcli",
-		connection.BuildNmcliConnArgs()...).CombinedOutput()
+		connection.BuildNmcliConnArgs()...)
+	err := c.Run()
 	if err != nil {
-		return "", fmt.Errorf("nmcli connection add failed: %w: %s", err, string(out))
+		return fmt.Errorf("nmcli connection add failed: %s", err)
 	}
-	outStr := string(out)
-	uuid, err := extractUUID(outStr)
-	if err != nil {
-		return "", err
-	}
-	return uuid, nil
+	return nil
 }
 
-func extractUUID(s string) (string, error) {
-	start := strings.LastIndex(s, "(")
-	end := strings.LastIndex(s, ")")
+//	outStr := string(out)
+//	uuid, err := extractUUID(outStr)
+//	if err != nil {
+//		return "", err
+//	}
+//	return uuid, nil
 
-	if start == -1 || end == -1 || end <= start {
-		return "", fmt.Errorf("could not extract UUID")
-	}
+//func extractUUID(s string) (string, error) {
+//	start := strings.LastIndex(s, "(")
+//	end := strings.LastIndex(s, ")")
+//
+//	if start == -1 || end == -1 || end <= start {
+//		return "", fmt.Errorf("could not extract UUID")
+//	}
+//
+//	return s[start+1 : end], nil
+//}
 
-	return s[start+1 : end], nil
-}
-
-func RunNmcliConnUp(uuid string) error {
-	if uuid == "" {
-		return fmt.Errorf("UUID is empty, cannot connect")
-	}
+func RunNmcliConnUp(ssid string) error {
+	//	if uuid == "" {
+	//		return fmt.Errorf("UUID is empty, cannot connect")
+	//	}
 	c := exec.Command(
 		"nmcli",
 		"connection",
 		"up",
-		"uuid",
-		uuid,
+		ssid,
 	)
 	err := c.Run()
 	if err != nil {
-		return fmt.Errorf("connection error to UUID %s", uuid)
+		return fmt.Errorf("connection error: %s", err)
 	}
 	return nil
 }
@@ -62,6 +63,18 @@ func RunNmcliConnShow() ([]byte, error) {
 		return nil, fmt.Errorf("error listing connections")
 	}
 	return out, nil
+}
+
+func RunNmcliConnDelete(ssid string) error {
+	c := exec.Command("nmcli",
+		"connection",
+		"delete",
+		ssid)
+	err := c.Run()
+	if err != nil {
+		return fmt.Errorf("error deleting connection: %s", err)
+	}
+	return nil
 }
 
 func RunWpacliScan(iface string) error {

@@ -44,11 +44,27 @@ func DoConnect(iface string, ssidEntry SSIDEntry, sec WiFiSecurity) error {
 		Base:     base,
 		Security: sec,
 	}
-	uuid, err := RunNmcliConnAdd(conn)
+	err := RunNmcliConnAdd(conn)
 	if err != nil {
 		return err
 	}
-	err = RunNmcliConnUp(uuid)
+	err = RunNmcliConnUp(conn.Base.SSID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DoConnectUp(ssid string) error {
+	err := RunNmcliConnUp(ssid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DoForgetSSID(ssid string) error {
+	err := RunNmcliConnDelete(ssid)
 	if err != nil {
 		return err
 	}

@@ -70,6 +70,8 @@ func newPSKForm(ssid string, sae bool) formModel {
 	ti.EchoMode = textinput.EchoPassword
 	ti.EchoCharacter = '*'
 
+	applyTextInputStyles(&ti)
+
 	return pskForm{
 		TextInput: ti,
 		Err:       nil,

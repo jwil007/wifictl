@@ -15,44 +15,6 @@ func sendMsg(msg tea.Msg) tea.Cmd {
 	}
 }
 
-type openForm struct{}
-
-func (f openForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
-	return nil, nil
-}
-
-func (f openForm) View() string {
-	s := "PlaceholderOpen"
-	return s
-}
-
-func (f openForm) Submit() interface{} {
-	return nil
-}
-
-func newOpenForm() formModel {
-	return openForm{}
-}
-
-type oweForm struct{}
-
-func (f oweForm) Update(msg tea.Msg) (formModel, tea.Cmd) {
-	return nil, nil
-}
-
-func (f oweForm) View() string {
-	s := "PlaceholderOWE"
-	return s
-}
-
-func (f oweForm) Submit() interface{} {
-	return nil
-}
-
-func newOWEForm() formModel {
-	return oweForm{}
-}
-
 type eapForm struct{}
 
 func (f eapForm) Update(msg tea.Msg) (formModel, tea.Cmd) {

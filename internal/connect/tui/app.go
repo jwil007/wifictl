@@ -39,6 +39,10 @@ type connectErrorMsg struct {
 	Err error
 }
 
+type forgetErrorMsg struct {
+	Err error
+}
+
 func initialModel() Model {
 	return Model{
 		Mode: loadingMode,
@@ -49,9 +53,8 @@ func initialModel() Model {
 	}
 }
 
-func detectSecType(index int, ssidList []connect.SSIDEntry) string {
-	sec := strings.Join(ssidList[index].SecType, "")
-
+func detectSecType(selected connect.SSIDEntry) string {
+	sec := strings.Join(selected.SecType, "")
 	switch {
 	case sec == "":
 		return "open"
@@ -86,6 +89,26 @@ func doConnectCmd(iface string,
 		err := connect.DoConnect(iface, ssidEntry, sec)
 		if err != nil {
 			return connectErrorMsg{Err: err}
+		}
+		return nil
+	}
+}
+
+func doConnectSavedCmd(ssid string) tea.Cmd {
+	return func() tea.Msg {
+		err := connect.DoConnectUp(ssid)
+		if err != nil {
+			return connectErrorMsg{Err: err}
+		}
+		return nil
+	}
+}
+
+func doForgetSSIDCmd(ssid string) tea.Cmd {
+	return func() tea.Msg {
+		err := connect.DoForgetSSID(ssid)
+		if err != nil {
+			return forgetErrorMsg{Err: err}
 		}
 		return nil
 	}
@@ -126,11 +149,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case selectedRowMsg:
 		m.Selected = m.SSIDList[msg.Cursor]
-		switch detectSecType(msg.Cursor, m.SSIDList) {
+
+		if m.Selected.Saved {
+			m.Form = newSavedForm(m.Selected.SSID)
+			m.Mode = formMode
+			return m, nil
+		}
+
+		switch detectSecType(m.Selected) {
 		case "open":
 			m.Form = newOpenForm()
 		case "owe":
-			m.Form = newOWEForm()
+			m.Form = newOpenForm()
 		case "psk":
 			m.Form = newPSKForm(m.Selected.SSID, false)
 		case "sae":
@@ -143,6 +173,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Mode = formMode
 		return m, nil
 
+	case savedSubmitMsg:
+		switch {
+		case msg.Connect:
+			cmd := doConnectSavedCmd(m.Selected.SSID)
+			m.Mode = tableMode
+			return m, cmd
+		case msg.Forget:
+			cmd := doForgetSSIDCmd(m.Selected.SSID)
+			m.Mode = tableMode
+			return m, cmd
+		}
+
 	case pskSubmitMsg:
 		var sec connect.PSKSec
 		sec.Passphrase = msg.Passphrase
@@ -152,6 +194,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case connectErrorMsg:
 		fmt.Println("connect error", msg.Err)
+
+	case forgetErrorMsg:
+		fmt.Println("forget SSID error", msg.Err)
 	}
 
 	switch m.Mode {

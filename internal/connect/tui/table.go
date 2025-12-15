@@ -58,7 +58,9 @@ func (m tableModel) Update(msg tea.Msg) (tableModel, tea.Cmd) {
 }
 
 func (m tableModel) View() string {
-	return baseStyle.Render(m.table.View()) + "\n"
+	table := baseStyle.Render(m.table.View())
+	footer := "[^/v] Scroll   [Enter] Select   [r] Refresh   [q/ctrl+c] Quit"
+	return lipgloss.JoinVertical(lipgloss.Center, table, footer)
 }
 
 func newTableModel() tableModel {
