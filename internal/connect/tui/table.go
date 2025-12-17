@@ -67,10 +67,10 @@ func newTableModel() tableModel {
 	columns := []table.Column{
 		{Title: "SSID", Width: 14},
 		{Title: "RSSI", Width: 4},
-		{Title: "AP Ct.", Width: 8},
-		{Title: "Security", Width: 20},
-		{Title: "Bands", Width: 20},
-		{Title: "Saved", Width: 8},
+		{Title: "#APs", Width: 4},
+		{Title: "Security", Width: 16},
+		{Title: "Bands", Width: 16},
+		{Title: "Saved", Width: 6},
 	}
 
 	t := table.New(

@@ -207,7 +207,7 @@ func CheckIfSSIDConn(connectedSSID string, ssidList []SSIDEntry) []SSIDEntry {
 			return ssidList
 		}
 	}
-	return nil
+	return ssidList
 }
 
 func SortByRSSI(ssidList []SSIDEntry) []SSIDEntry {

@@ -6,7 +6,7 @@ import (
 )
 
 var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.RoundedBorder()).
+	BorderStyle(lipgloss.NormalBorder()).
 	BorderForeground(lipgloss.Color("240"))
 
 type formStyles struct {
@@ -23,7 +23,7 @@ func defaultFormStyles() formStyles {
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240")).
 			Padding(1, 2).
-			Width(80),
+			Width(72),
 
 		Title: lipgloss.NewStyle().
 			Bold(true).
@@ -32,7 +32,7 @@ func defaultFormStyles() formStyles {
 		TextBox: lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			Padding(0, 1).
-			Width(70),
+			Width(64),
 
 		Footer: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")),

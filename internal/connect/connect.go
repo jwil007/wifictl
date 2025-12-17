@@ -1,6 +1,11 @@
 // Package connect: SSID connection wizard
 package connect
 
+import (
+	"fmt"
+	"strconv"
+)
+
 func DoScan(iface string) ([]SSIDEntry, error) {
 	err := RunWpacliScan(iface)
 	if err != nil {
@@ -16,7 +21,7 @@ func DoScan(iface string) ([]SSIDEntry, error) {
 	}
 	wpacliStatus, err := RunWpacliStatus(iface)
 	if err != nil {
-		return nil, err
+		fmt.Println("wpacli scan error")
 	}
 	scanList, err := BuildScanList(rawScan)
 	if err != nil {
@@ -29,8 +34,12 @@ func DoScan(iface string) ([]SSIDEntry, error) {
 	}
 	ssidListSaved := CheckIfSSIDSaved(savedSSIDs, ssidList)
 	connectedSSID := GetConnectedSSID(wpacliStatus)
+	fmt.Println("checked for connected SSID")
 	ssidListConnected := CheckIfSSIDConn(connectedSSID, ssidListSaved)
+	fmt.Println(strconv.Itoa(len(ssidListConnected)))
+	fmt.Println("build ssid list with connected ssid")
 	ssidListSorted := SortByRSSI(ssidListConnected)
+	fmt.Println("sorted SSID list by RSSI")
 	return ssidListSorted, nil
 }
 
