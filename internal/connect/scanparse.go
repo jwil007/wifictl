@@ -28,7 +28,7 @@ type SSIDEntry struct {
 	Connected  bool
 }
 
-func BuildScanList(rawScan []byte) ([]ScanResult, error) {
+func buildScanList(rawScan []byte) ([]ScanResult, error) {
 	r := string(rawScan)
 
 	linesRaw := strings.Split(string(r), "\n")
@@ -81,7 +81,7 @@ func BuildScanList(rawScan []byte) ([]ScanResult, error) {
 	return scanList, nil
 }
 
-func GroupBySSID(scanList []ScanResult) map[string][]ScanResult {
+func groupBySSID(scanList []ScanResult) map[string][]ScanResult {
 	groupedBySSID := make(map[string][]ScanResult)
 
 	for _, scan := range scanList {
@@ -90,7 +90,7 @@ func GroupBySSID(scanList []ScanResult) map[string][]ScanResult {
 	return groupedBySSID
 }
 
-func BuildSSIDList(groupedBySSID map[string][]ScanResult) ([]SSIDEntry, error) {
+func buildSSIDList(groupedBySSID map[string][]ScanResult) ([]SSIDEntry, error) {
 	var ssidList []SSIDEntry
 	for ssid, items := range groupedBySSID {
 		// create slices for each attribute
@@ -175,7 +175,7 @@ func processBands(freqList []int) ([]string, error) {
 	return bands, nil
 }
 
-func CheckIfSSIDSaved(savedSSIDs []byte, ssidList []SSIDEntry) []SSIDEntry {
+func checkIfSSIDSaved(savedSSIDs []byte, ssidList []SSIDEntry) []SSIDEntry {
 	s := string(savedSSIDs)
 	savedSSIDList := strings.Split(s, "\n")
 
@@ -187,7 +187,7 @@ func CheckIfSSIDSaved(savedSSIDs []byte, ssidList []SSIDEntry) []SSIDEntry {
 	return ssidList
 }
 
-func GetConnectedSSID(wpacliStatus []byte) string {
+func getConnectedSSID(wpacliStatus []byte) string {
 	s := string(wpacliStatus)
 	lines := strings.Split(s, "\n")
 	for _, line := range lines {
@@ -200,7 +200,7 @@ func GetConnectedSSID(wpacliStatus []byte) string {
 	return ""
 }
 
-func CheckIfSSIDConn(connectedSSID string, ssidList []SSIDEntry) []SSIDEntry {
+func checkIfSSIDConn(connectedSSID string, ssidList []SSIDEntry) []SSIDEntry {
 	for i := range ssidList {
 		if ssidList[i].SSID == connectedSSID {
 			ssidList[i].Connected = true
@@ -210,7 +210,7 @@ func CheckIfSSIDConn(connectedSSID string, ssidList []SSIDEntry) []SSIDEntry {
 	return ssidList
 }
 
-func SortByRSSI(ssidList []SSIDEntry) []SSIDEntry {
+func sortByRSSI(ssidList []SSIDEntry) []SSIDEntry {
 	sort.Slice(ssidList, func(i, j int) bool {
 		return ssidList[i].RSSI > ssidList[j].RSSI
 	})

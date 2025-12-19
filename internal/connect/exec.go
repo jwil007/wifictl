@@ -6,10 +6,10 @@ import (
 	"os/exec"
 )
 
-func RunNmcliConnAdd(connection WiFiConnection) error {
+func runNmcliConnAdd(connection WiFiConnection) error {
 	c := exec.Command(
 		"nmcli",
-		connection.BuildNmcliConnArgs()...)
+		connection.buildNmcliConnArgs()...)
 	err := c.Run()
 	if err != nil {
 		return fmt.Errorf("nmcli connection add failed: %s", err)
@@ -17,28 +17,7 @@ func RunNmcliConnAdd(connection WiFiConnection) error {
 	return nil
 }
 
-//	outStr := string(out)
-//	uuid, err := extractUUID(outStr)
-//	if err != nil {
-//		return "", err
-//	}
-//	return uuid, nil
-
-//func extractUUID(s string) (string, error) {
-//	start := strings.LastIndex(s, "(")
-//	end := strings.LastIndex(s, ")")
-//
-//	if start == -1 || end == -1 || end <= start {
-//		return "", fmt.Errorf("could not extract UUID")
-//	}
-//
-//	return s[start+1 : end], nil
-//}
-
-func RunNmcliConnUp(ssid string) error {
-	//	if uuid == "" {
-	//		return fmt.Errorf("UUID is empty, cannot connect")
-	//	}
+func runNmcliConnUp(ssid string) error {
 	c := exec.Command(
 		"nmcli",
 		"connection",
@@ -52,7 +31,7 @@ func RunNmcliConnUp(ssid string) error {
 	return nil
 }
 
-func RunNmcliConnShow() ([]byte, error) {
+func runNmcliConnShow() ([]byte, error) {
 	out, err := exec.Command("nmcli",
 		"-t",
 		"-f",
@@ -65,7 +44,7 @@ func RunNmcliConnShow() ([]byte, error) {
 	return out, nil
 }
 
-func RunNmcliConnDelete(ssid string) error {
+func runNmcliConnDelete(ssid string) error {
 	c := exec.Command("nmcli",
 		"connection",
 		"delete",
@@ -77,7 +56,7 @@ func RunNmcliConnDelete(ssid string) error {
 	return nil
 }
 
-func RunWpacliScan(iface string) error {
+func runWpacliScan(iface string) error {
 	c := exec.Command("wpa_cli", "-i", iface, "scan")
 	err := c.Run()
 	if err != nil {
@@ -86,7 +65,7 @@ func RunWpacliScan(iface string) error {
 	return nil
 }
 
-func RunWpacliScanResults(iface string) ([]byte, error) {
+func runWpacliScanResults(iface string) ([]byte, error) {
 	out, err := exec.Command(
 		"wpa_cli",
 		"-i",
@@ -98,7 +77,7 @@ func RunWpacliScanResults(iface string) ([]byte, error) {
 	return out, nil
 }
 
-func RunWpacliStatus(iface string) ([]byte, error) {
+func runWpacliStatus(iface string) ([]byte, error) {
 	out, err := exec.Command(
 		"wpa_cli",
 		"-i",

@@ -1,45 +1,36 @@
 // Package connect: SSID connection wizard
 package connect
 
-import (
-	"fmt"
-	"strconv"
-)
-
 func DoScan(iface string) ([]SSIDEntry, error) {
-	err := RunWpacliScan(iface)
+	err := runWpacliScan(iface)
 	if err != nil {
 		return nil, err
 	}
-	rawScan, err := RunWpacliScanResults(iface)
+	rawScan, err := runWpacliScanResults(iface)
 	if err != nil {
 		return nil, err
 	}
-	savedSSIDs, err := RunNmcliConnShow()
+	savedSSIDs, err := runNmcliConnShow()
 	if err != nil {
 		return nil, err
 	}
-	wpacliStatus, err := RunWpacliStatus(iface)
-	if err != nil {
-		fmt.Println("wpacli scan error")
-	}
-	scanList, err := BuildScanList(rawScan)
+	wpacliStatus, err := runWpacliStatus(iface)
 	if err != nil {
 		return nil, err
 	}
-	groupedBySSID := GroupBySSID(scanList)
-	ssidList, err := BuildSSIDList(groupedBySSID)
+	scanList, err := buildScanList(rawScan)
 	if err != nil {
 		return nil, err
 	}
-	ssidListSaved := CheckIfSSIDSaved(savedSSIDs, ssidList)
-	connectedSSID := GetConnectedSSID(wpacliStatus)
-	fmt.Println("checked for connected SSID")
-	ssidListConnected := CheckIfSSIDConn(connectedSSID, ssidListSaved)
-	fmt.Println(strconv.Itoa(len(ssidListConnected)))
-	fmt.Println("build ssid list with connected ssid")
-	ssidListSorted := SortByRSSI(ssidListConnected)
-	fmt.Println("sorted SSID list by RSSI")
+	groupedBySSID := groupBySSID(scanList)
+	ssidList, err := buildSSIDList(groupedBySSID)
+	if err != nil {
+		return nil, err
+	}
+	ssidListSaved := checkIfSSIDSaved(savedSSIDs, ssidList)
+	connectedSSID := getConnectedSSID(wpacliStatus)
+	ssidListConnected := checkIfSSIDConn(connectedSSID, ssidListSaved)
+	ssidListSorted := sortByRSSI(ssidListConnected)
 	return ssidListSorted, nil
 }
 
@@ -53,11 +44,11 @@ func DoConnect(iface string, ssidEntry SSIDEntry, sec WiFiSecurity) error {
 		Base:     base,
 		Security: sec,
 	}
-	err := RunNmcliConnAdd(conn)
+	err := runNmcliConnAdd(conn)
 	if err != nil {
 		return err
 	}
-	err = RunNmcliConnUp(conn.Base.SSID)
+	err = runNmcliConnUp(conn.Base.SSID)
 	if err != nil {
 		return err
 	}
@@ -65,7 +56,7 @@ func DoConnect(iface string, ssidEntry SSIDEntry, sec WiFiSecurity) error {
 }
 
 func DoConnectUp(ssid string) error {
-	err := RunNmcliConnUp(ssid)
+	err := runNmcliConnUp(ssid)
 	if err != nil {
 		return err
 	}
@@ -73,7 +64,7 @@ func DoConnectUp(ssid string) error {
 }
 
 func DoForgetSSID(ssid string) error {
-	err := RunNmcliConnDelete(ssid)
+	err := runNmcliConnDelete(ssid)
 	if err != nil {
 		return err
 	}

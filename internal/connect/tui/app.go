@@ -130,7 +130,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "r":
 			if m.Mode == tableMode {
-				m.Mode = loadingMode
 				return m, doScanCmd(m.Iface)
 			}
 		case "esc":
@@ -158,9 +157,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch detectSecType(m.Selected) {
 		case "open":
-			m.Form = newOpenForm()
+			m.Form = newOpenForm(m.Selected.SSID, false)
 		case "owe":
-			m.Form = newOpenForm()
+			m.Form = newOpenForm(m.Selected.SSID, true)
 		case "psk":
 			m.Form = newPSKForm(m.Selected.SSID, false)
 		case "sae":
@@ -168,7 +167,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "eap":
 			m.Form = newEAPForm()
 		default:
-			m.Form = newOpenForm()
+			m.Form = newSavedForm(m.Selected.SSID)
 		}
 		m.Mode = formMode
 		return m, nil
@@ -184,6 +183,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Mode = tableMode
 			return m, cmd
 		}
+
+	case openSubmitMsg:
+		var sec connect.OpenSec
+		sec.OWE = msg.OWE
+		cmd := doConnectCmd(m.Iface, m.Selected, sec)
+		return m, cmd
 
 	case pskSubmitMsg:
 		var sec connect.PSKSec

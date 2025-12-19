@@ -15,20 +15,17 @@ type WiFiConnection struct {
 	Security WiFiSecurity
 }
 
-type OpenSec struct{}
-
-func (OpenSec) nmcliArgs() []string {
-	return []string{
-		"wifi-sec.key-mgmt", "none",
-	}
+type OpenSec struct {
+	OWE bool
 }
 
-type OWESec struct{}
-
-func (OWESec) nmcliArgs() []string {
-	return []string{
-		"wifi-sec.key-mgmt", "owe",
+func (o OpenSec) nmcliArgs() []string {
+	if o.OWE {
+		return []string{
+			"wifi-sec.key-mgmt", "owe",
+		}
 	}
+	return []string{}
 }
 
 type PSKSec struct {
@@ -100,7 +97,7 @@ func (t TLSSec) nmcliArgs() []string {
 	return args
 }
 
-func (w WiFiConnection) BuildNmcliConnArgs() []string {
+func (w WiFiConnection) buildNmcliConnArgs() []string {
 	args := []string{
 		"connection", "add",
 		"type", "wifi",
