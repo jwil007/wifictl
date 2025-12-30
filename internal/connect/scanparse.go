@@ -2,12 +2,14 @@
 package connect
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ScanResult struct {
@@ -26,6 +28,12 @@ type SSIDEntry struct {
 	Bands      []string
 	Saved      bool
 	Connected  bool
+}
+
+type ConnectionStatus struct {
+	Duration time.Duration
+	Status   string
+	Failure  bool
 }
 
 func buildScanList(rawScan []byte) ([]ScanResult, error) {
@@ -215,4 +223,81 @@ func sortByRSSI(ssidList []SSIDEntry) []SSIDEntry {
 		return ssidList[i].RSSI > ssidList[j].RSSI
 	})
 	return ssidList
+}
+
+func MonitorConnection(iface string) (ConnectionStatus, error) {
+	start := time.Now()
+	timeout := time.NewTimer(30 * time.Second)
+	defer timeout.Stop()
+
+	out, stop, err := runNmcliDevMonitor(iface)
+	if err != nil {
+		return ConnectionStatus{}, err
+	}
+
+	lines := make(chan string)
+	scanErr := make(chan error, 1)
+
+	go func() {
+		defer close(lines)
+		scanner := bufio.NewScanner(out)
+		for scanner.Scan() {
+			lines <- scanner.Text()
+		}
+		scanErr <- scanner.Err()
+	}()
+
+	for {
+		select {
+		case <-timeout.C:
+			t := time.Now()
+			elapsed := t.Sub(start)
+			_ = stop()
+			return ConnectionStatus{
+				Duration: elapsed,
+				Status:   "connection timed out",
+				Failure:  true,
+			}, nil
+
+		case line, ok := <-lines:
+			if !ok {
+				if err := <-scanErr; err != nil {
+					return ConnectionStatus{}, err
+				}
+				t := time.Now()
+				elapsed := t.Sub(start)
+				_ = stop()
+				return ConnectionStatus{
+					Duration: elapsed,
+					Status:   "monitor ended",
+					Failure:  true,
+				}, nil
+
+			}
+			switch {
+			case strings.Contains(line, ": connected"):
+				fmt.Println("connection success")
+				t := time.Now()
+				elapsed := t.Sub(start)
+				_ = stop()
+
+				return ConnectionStatus{
+					Duration: elapsed,
+					Status:   line,
+					Failure:  false,
+				}, nil
+
+			case strings.Contains(line, "connection failed"):
+				fmt.Println("connection failure")
+				t := time.Now()
+				elapsed := t.Sub(start)
+				_ = stop()
+				return ConnectionStatus{
+					Duration: elapsed,
+					Status:   line,
+					Failure:  true,
+				}, nil
+			}
+		}
+	}
 }
